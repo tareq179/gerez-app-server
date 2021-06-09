@@ -11,6 +11,10 @@ app.use(cors());
 
 const port = process.env.PORT || 5500;
 
+app.get("/", (req, res) => {
+  res.send("Hello the app is working working!");
+});
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.g5ktv.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 console.log(uri);
 const client = new MongoClient(uri, {
@@ -69,6 +73,14 @@ client.connect((err) => {
     });
   });
 
+  app.delete("/delete:id", (req, res) => {
+    ServiceCollection.deleteOne({ _id: ObjectId(req.params.id) }).then(
+      (result) => {
+        res.send(!!result.deletedCount);
+      }
+    );
+  });
+
   app.patch("/update:id", (req, res) => {
     ServiceCollection.updateOne(
       {
@@ -81,10 +93,6 @@ client.connect((err) => {
       res.send(!!result.modifiedCount);
     });
   });
-});
-
-app.get("/", (req, res) => {
-  res.send("Hello World!");
 });
 
 app.listen(port, () => {
