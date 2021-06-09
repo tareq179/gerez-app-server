@@ -26,6 +26,7 @@ client.connect((err) => {
   const AdminCollection = client.db("gerez").collection("admins");
   const ServiceCollection = client.db("gerez").collection("services");
   const OrderCollection = client.db("gerez").collection("orders");
+  const ReviewCollection = client.db("gerez").collection("reviews");
 
   app.get("/isAdmin", (req, res) => {
     AdminCollection.find({ email: req.query.email }).toArray((err, docs) => {
@@ -49,6 +50,18 @@ client.connect((err) => {
     });
   });
 
+  app.get("/orders", (req, res) => {
+    adminsCollection.find({ email: req.query.email }).toArray((err, docs) => {
+      if (docs.length) {
+        orderCollection.find({}).toArray((err, docs) => res.send(docs));
+      } else {
+        orderCollection
+          .find({ email: req.query.email })
+          .toArray((err, docs) => res.send(docs));
+      }
+    });
+  });
+
   app.get("/services", (req, res) => {
     ServiceCollection.find().toArray((err, docs) => {
       res.send(docs);
@@ -57,6 +70,12 @@ client.connect((err) => {
 
   app.post("/addAdmin", (req, res) => {
     AdminCollection.insertOne(req.body).then((result) => {
+      res.send(!!result.insertedCount > 0);
+    });
+  });
+
+  app.post("/addReview", (req, res) => {
+    ReviewCollection.insertOne(req.body).then((result) => {
       res.send(!!result.insertedCount > 0);
     });
   });
@@ -81,6 +100,17 @@ client.connect((err) => {
     );
   });
 
+  app.patch("/updateOrderStatus", (req, res) => {
+    const { id, status } = req.body;
+    console.log(req.body);
+    OrderCollection.findOneAndUpdate(
+      { _id: ObjectId(id) },
+      {
+        $set: { status },
+      }
+    ).then((result) => res.send(result.lastErrorObject.updatedExisting));
+  });
+
   app.patch("/update:id", (req, res) => {
     ServiceCollection.updateOne(
       {
@@ -92,6 +122,28 @@ client.connect((err) => {
     ).then((result) => {
       res.send(!!result.modifiedCount);
     });
+  });
+
+  app.patch("/updateReview/:id"),
+    (req, res) => {
+      ReviewCollection.updateOne(
+        {
+          _id: ObjectId(req.params.id),
+        },
+        {
+          $set: req.body,
+        }
+      ).then((result) => {
+        res.send(!!result.modifiedCount);
+      });
+    };
+
+  app.delete("/deleteReview/:id", (req, res) => {
+    ReviewCollection.deleteOne({ _id: ObjectId(req.params.id) }).then(
+      (result) => {
+        res.send(!!result.deletedCount);
+      }
+    );
   });
 });
 
