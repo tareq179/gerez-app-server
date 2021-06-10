@@ -50,16 +50,13 @@ client.connect((err) => {
     });
   });
 
-  app.get("/orders", (req, res) => {
-    adminsCollection.find({ email: req.query.email }).toArray((err, docs) => {
-      if (docs.length) {
-        orderCollection.find({}).toArray((err, docs) => res.send(docs));
-      } else {
-        orderCollection
-          .find({ email: req.query.email })
-          .toArray((err, docs) => res.send(docs));
-      }
-    });
+  app.get("/reviews", (req, res) => {
+    if (req.query.email) {
+      return ReviewCollection.find({ email: req.query.email }).toArray(
+        (err, docs) => res.send(docs[0])
+      );
+    }
+    ReviewCollection.find({}).toArray((err, docs) => res.send(docs));
   });
 
   app.get("/services", (req, res) => {
